@@ -3,7 +3,7 @@
 from machine import Pin
 from time import sleep_ms
 
-pin = 14
+pin = 13
 delay = 25
 freq = (1 / (delay * 2)) * 1000
 led = Pin(pin, Pin.OUT)
