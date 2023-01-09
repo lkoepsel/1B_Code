@@ -1,6 +1,11 @@
 // Sensor
 
 // Reads an analog pin, convert to another value  and save to filesystem
+// 1. Initialize - setup the sensor and filesystem
+// 2. Read ADC pin - get the value from pin connected to the sensor
+// 3. Convert - convert ADC value to temperature, voltage, capacitance etc
+// 4. Save - save converted value along with optional time stamp tofile system. 
+// 5. Display - show the values on local display or via a USB cable to a PC
 
 
 #include "Arduino.h"
@@ -28,7 +33,7 @@ void setup()
 
     File testFile = LittleFS.open(filename, "w");
 
-    // 2. Read ADC (get )
+    // 2. Read ADC
     if (testFile)
     {
         Serial.print(F("Reading ADC..."));
@@ -38,7 +43,7 @@ void setup()
             sensorValue = analogRead(sensorPin);
 
 
-            // 3. Convert ADC value into a measureable, voltage, temp, moisture
+            // 3. Convert ADC value into voltage, temp, moisture
             
             // 4. Save value to a file
             testFile.print("\nSensor Value: \t");
