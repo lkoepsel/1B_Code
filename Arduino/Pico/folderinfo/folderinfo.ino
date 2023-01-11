@@ -19,7 +19,7 @@ void setup()
  
     while (!Serial) {delay(100);}
  
-    Serial.println(F("Inizializing FS..."));
+    Serial.print(F("Inizializing FS..."));
     if (LittleFS.begin()){
         Serial.println(F("done."));
     }else{
@@ -39,19 +39,19 @@ void setup()
  
     unsigned int maxPath = info->maxPathLength;
  
-    Serial.println("File sistem info.");
+    Serial.println("File sistem info:");
  
     Serial.print("Total space:      ");
     Serial.print(totalBytes);
-    Serial.println("byte");
+    Serial.println(" bytes");
  
     Serial.print("Total space used: ");
     Serial.print(usedBytes);
-    Serial.println("byte");
+    Serial.println(" bytes");
  
     Serial.print("Total space free: ");
     Serial.print(freeBytes);
-    Serial.println("byte");
+    Serial.println(" bytes");
  
     Serial.print("Max path lenght: ");
     Serial.print(maxPath);
@@ -90,7 +90,7 @@ void printDirectory(File dir, int numTabs) {
       Serial.print("\t\t");
       Serial.print(entry.size(), DEC);
       Serial.print("\t");
-      Serial.println("byte");
+      Serial.println(" bytes");
  
     }
     entry.close();
