@@ -33,9 +33,28 @@ String setName(unsigned int i)
     return dayFileName = dir + basename + String(i);
 }
 
+unsigned int getNum()
+{
+    while(true)
+    {    
+        if (Serial.available() > 0) 
+        {
+            choice = Serial.read();
+            returnKey = Serial.read();
+            return choice - 48;
+        }
+    // from Arduino docs, rec'd for stability
+    delay(1);
+    }
+}
+
 void displaySamples()
 {
-    // 5. Display values 
+    // 5. Display values from a file
+    Serial.print("Enter number of file desired (1-7):");
+    unsigned int num = getNum();
+    dayFileName = setName(num);
+    Serial.println(dayFileName);
     testFile = LittleFS.open(dayFileName, "r");
     if (testFile)
     {
@@ -46,12 +65,18 @@ void displaySamples()
     }
     else
     {
-        Serial.println("Problem reading samples file!");
+        Serial.print("Problem reading samples file!");
+        Serial.println(dayFileName);
     }
 }
 void readSamples()
 {
     // 2. Read ADC
+    Serial.print("Enter number of file desired (1-7):");
+    unsigned int num = getNum();
+    dayFileName = setName(num);
+    Serial.println(dayFileName);
+    testFile = LittleFS.open(dayFileName, "r");
     if (testFile)
     {
         Serial.print(F("Reading ADC..."));
@@ -71,6 +96,8 @@ void readSamples()
             testFile.print(voltage);
             testFile.print("\n");
             delay(delaySamples);
+            Serial.print(F("i=."));
+            Serial.println(i);
         }
 
         Serial.println(F("complete."));
@@ -149,7 +176,8 @@ void loop()
                  delFiles();
                  break;
             case 115:  // s for show samples
-                 Serial.println("Show sampling");
+                 Serial.println("Show samples");
+                 displaySamples();
                  break;
             case 114:  // r for record samples
                  Serial.println("Record samples");
