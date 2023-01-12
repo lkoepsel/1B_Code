@@ -11,6 +11,8 @@
 #include "Arduino.h"
 #include "LittleFS.h"
 
+void printDirectory(File dir, int numTabs = 3);
+
 int sensorPin = A0;                 // input pin for ADC
 unsigned int sensorValue = 0;       // value coming from the ADC
 unsigned int numSamples = 20;       // number of samples to capture
@@ -20,6 +22,19 @@ unsigned int numfiles = 7;
 File testFile;
 char filename[] = "/1";   // file to store sample data
 String dayFileName;
+
+void printDir()
+{
+    // Open dir folder
+    File dir = LittleFS.open("/", "r");
+    // Cycle all the content
+    printDirectory(dir);
+}
+
+String setName(unsigned int i)
+{
+    return dayFileName = "/day_" + String(i);
+}
 
 void setup() 
     {
@@ -34,6 +49,8 @@ void setup()
         Serial.println(F("failed."));
     }
 
+    printDir();
+    
     analogReadResolution(12);
 
     // simple, single file sampling
@@ -43,7 +60,7 @@ void setup()
     // monthly, multiple file sampling
     for (int i = 1; i<=numfiles; i++)
     {
-        dayFileName = "/" + String(i);
+        setName(i);
         if (!LittleFS.exists(dayFileName))
         {
             Serial.print(dayFileName);
@@ -94,6 +111,7 @@ void setup()
     {
         Serial.println("Problem reading samples file!");
     }
+    printDir();
 
 }
 
@@ -102,3 +120,31 @@ void loop()
 {
   
 }
+
+void printDirectory(File dir, int numTabs) {
+  while (true) {
+ 
+    File entry =  dir.openNextFile();
+    if (! entry) {
+      // no more files
+      break;
+    }
+    for (uint8_t i = 0; i < numTabs; i++) {
+      Serial.print('\t');
+    }
+    Serial.print(entry.name());
+    if (entry.isDirectory()) {
+      Serial.println("/");
+      printDirectory(entry, numTabs + 1);
+    } else {
+      // files have sizes, directories do not
+      Serial.print("\t\t");
+      Serial.print(entry.size(), DEC);
+      Serial.print("\t");
+      Serial.println(" bytes");
+ 
+    }
+    entry.close();
+  }
+}
+

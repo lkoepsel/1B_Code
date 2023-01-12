@@ -12,25 +12,31 @@
 #include "LittleFS.h"
 
 void printDirectory(File dir, int numTabs = 3);
-void delFiles(File dir);
 
 int sensorPin = A0;                 // input pin for ADC
 unsigned int sensorValue = 0;       // value coming from the ADC
 unsigned int numSamples = 20;       // number of samples to capture
-unsigned int delaySamples = 1000;    // milliseconds between each sample
+unsigned int delaySamples = 100;    // milliseconds between each sample
 double voltage = 0;                 // voltage calculated from ADC
 unsigned int numfiles = 7;
 File testFile;
-char filename[] = "/1";   // file to store sample data
+String dir = "/";   // file to store sample data
+String basename = "Day_";   // file to store sample data
 String dayFileName;
 
-void printDir()
+String setName(unsigned int i)
+{
+    return dayFileName = dir + basename + String(i);
+}
+
+void printRootDir()
 {
     // Open dir folder
     File dir = LittleFS.open("/", "r");
     // Cycle all the content
     printDirectory(dir);
 }
+
 void setup() 
     {
     // 1. Initialize printing and filesystem
@@ -43,25 +49,71 @@ void setup()
     }else{
         Serial.println(F("failed."));
     }
-    Serial.println(F("Current Directory"));
-    printDir();
+
+    Serial.println("Current Directory");
+    printRootDir();
+    
+    analogReadResolution(12);
 
     // monthly, multiple file sampling
-    Serial.println(F("Checking for Files, deleting if file exists"));
     for (int i = 1; i<=numfiles; i++)
     {
-        dayFileName = "/" + String(i);
-        if (LittleFS.exists(dayFileName))
+        setName(i);
+        if (!LittleFS.exists(dayFileName))
         {
             Serial.print(dayFileName);
-            Serial.println(" exists, deleted");
-            LittleFS.remove(dayFileName);      
+            Serial.println(" does not exist...created");
+            testFile = LittleFS.open(dayFileName, "w");
+            break;      
         }
     }
-    Serial.println(F("Delete All Files"));
-    delFiles();
-    Serial.println(F("Remaining Files"));    
-    printDir();
+    // 2. Read ADC
+    if (testFile)
+    {
+        Serial.print(F("Reading ADC..."));
+        for (int i=0;i<numSamples;i++)
+        {
+            // read the value from the sensor:
+            sensorValue = analogRead(sensorPin);
+
+
+            // 3. Convert ADC value into voltage
+            voltage = sensorValue/4096.0 * 3.30;
+
+
+            // 4. Save value to a file
+            testFile.print(sensorValue);
+            testFile.print("\t");
+            testFile.print(voltage);
+            testFile.print("\n");
+            delay(delaySamples);
+        }
+
+        Serial.println(F("complete."));
+        testFile.close();
+    }
+    else
+    {
+        Serial.println("Problems creating file!");
+    }
+
+    // 5. Display values 
+    testFile = LittleFS.open(dayFileName, "r");
+    if (testFile)
+    {
+        Serial.print("Reading samples file, ");
+        Serial.println(testFile.name());
+        Serial.println(testFile.readString());
+        testFile.close();
+    }
+    else
+    {
+        Serial.println("Problem reading samples file!");
+    }
+    
+    Serial.println("Updated Directory");
+    printRootDir();
+
 }
 
 // an empty void loop() is the same as a stop() function
@@ -96,6 +148,7 @@ void printDirectory(File dir, int numTabs) {
     entry.close();
   }
 }
+
 
 void delFiles() 
 {
