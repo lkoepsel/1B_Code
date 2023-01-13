@@ -11,6 +11,9 @@
 
 #include "Arduino.h"
 #include "LittleFS.h"
+// Include the SparkFun qwiic OLED Library
+#include <SparkFun_Qwiic_OLED.h>
+
 
 // asks for a specific file (0-9) to display
 // prints the file contents to the screen
@@ -242,7 +245,7 @@ void printMenu()
 {
     Serial.println("Enter one of the following:");
     Serial.println("\tp for Print directory");
-    Serial.println("\td for Delete directory");
+    Serial.println("\td for Delete directory(DELETES ALL FILES!!)");
     Serial.println("\ts for Show samples");
     Serial.println("\tr for  record samples");
     Serial.println("Followed by return.");
