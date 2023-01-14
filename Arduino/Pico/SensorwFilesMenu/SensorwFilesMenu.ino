@@ -11,8 +11,6 @@
 
 #include "Arduino.h"
 #include "LittleFS.h"
-// Include the SparkFun qwiic OLED Library
-#include <SparkFun_Qwiic_OLED.h>
 
 
 // asks for a specific file (0-9) to display
