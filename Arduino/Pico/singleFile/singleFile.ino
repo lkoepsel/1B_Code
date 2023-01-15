@@ -1,3 +1,5 @@
+// TEST PROGRAM ONLY DO NOT USE!!!
+
 #include <LittleFS.h>
 #include <SingleFileDrive.h>
 
@@ -8,8 +10,6 @@ void readSamples();
 // asks user for a single number to create a filename 
 // returns an integer 0-9
 unsigned int getNum();
-
-
 
 void myPlugSF(uint32_t data) {
     // Tell my app not to write to flash, we're connected
@@ -62,7 +62,7 @@ void setup() {
         }
         else
         {
-            Serial.println("Success! Do you see it?");
+            Serial.println("Success! Wait for PICODRIVE to appear in File Manager");
         }
     }
 }
