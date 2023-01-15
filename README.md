@@ -21,6 +21,18 @@ Be sure to press the Boot/Sel button while plugging in a Pi Pico, or press Reset
 
 
 ## Pico Sketches
+### OLED_Display
+Code sample to use for projects, demonstrates how to use fonts and display varying lines of text
+#### Sources of Information
+* Display Board: https://www.adafruit.com/product/4650
+* Display Board Primer: https://learn.adafruit.com/adafruit-128x64-oled-featherwing
+* Fonts available: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
+* Strint Class for Text to display: https://www.arduino.cc/reference/en/language/variables/data-types/stringobject/
+
+### SingleFile Drice
+This code will allow you to offer a single file to be transferred from the Pico as a USB file, it will show up in the PC's directory as a file
+
+* Docs: https://arduino-pico.readthedocs.io/en/latest/singlefile.html
 ### Adafruit OLED
 Simple test the Adafruit 4650 128x64 OLED display.
 
