@@ -20,7 +20,24 @@ Error opening serial port '/dev/cu.usbmodem3101'.
 Be sure to press the Boot/Sel button while plugging in a Pi Pico, or press Reset while holding the Boot/Sel button on the Adafruit Feather. This will put the Pico board in the proper state to accept a new program.
 
 
-## Pico Sketches
+## Pico Sketchesm, Recommended for Use:
+
+### SensorwFilesMenuSerial
+Complete program to do the following via the Serial port (USB cable):
+```
+p - print directory
+d - delete a file in the directory
+r - record numSamples number of samples with a delaySamples in between each sample
+s - show the contents of a sample file 
+```
+The menu system uses a single character response, so only A-Z/0-9 are available as responses. Program automatically adds File_ to the name so each file name would be *File_0*, *File_1*, *File_2* or *File_A*, *File_B* and so on.
+
+Once the file contents are printed to the screen, one can use keyboard commands such as Select All (Cntrl-A/Cmd-A) and Copy (Cntrl-C/Cmd-C) to capture the data to use on the PC.
+
+This program serves as a template only and requires customization to be used as a sensor project. It collects data from pin A0 and converts to a Voltage, however, this is of little value unless you attach a voltage-related object to pin A0.
+
+## Pico Sketches, Partially Complete, Not suitable for Use
+
 ### OLED_Display
 Code sample to use for projects, demonstrates how to use fonts and display varying lines of text
 #### Sources of Information

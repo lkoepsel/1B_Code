@@ -1,8 +1,10 @@
-// SensorwFilesMenu
+// SensorwFilesMenuSerial
+// Provides a menu per docs below along with a filesystem to save files on Pico
+// Communicates solely through Serial port (USB cable)
 
 // A menu-based frame work for the following tasks
 // p - print directory
-// d - delete ALL files in the directory
+// d - delete a file in the directory
 // r - record numSamples number of samples with a delaySamples in between each sample
 // s - show the contents of a sample file 
 // The menu system uses a single character response, 
@@ -13,6 +15,9 @@
 #include "LittleFS.h"
 
 
+// delete a file in the directory
+void delFile();
+
 // asks for a specific file (0-9) to display
 // prints the file contents to the screen
 void displaySamples();
@@ -21,10 +26,16 @@ void displaySamples();
 // returns an integer 0-9
 unsigned int getNum();
 
+// returns a file name to be used for processing
+String getfileName();
+
+// prints the menu
+void printMenu();
+
 // prints the directory(s) starting at the root /
 void printRootDir();
 
-// helper function to print a directory, recursive so be careful
+// helper function to print a directory, recursive so be careful when modding
 void printDirectory(File dir, int numTabs = 3);
 
 // asks for a specific file to store data
@@ -34,11 +45,8 @@ void readSamples();
 // build name for testfile
 String setName(unsigned int i);
 
-// deletes ALL files in the directory
-void delFiles();
-
-// prints the menu
-void printMenu();
+// converts a local file to a user file to be downloaded to PC
+void userFile();
 
 int sensorPin = A0;                 // input pin for ADC
 unsigned int sensorValue = 0;       // value coming from the ADC
@@ -49,6 +57,8 @@ File testFile;                      // File object for storing data
 String dir = "/";                   // base directory for files
 String basename = "File_";           // base of filename
 String dayFileName;
+char bufName[] = "File_0";
+unsigned int bufLen = 6;
 
 
 int choice = 0;                     // choice for menu and questions
@@ -64,7 +74,8 @@ void setup() {
         Serial.println(F("complete."));
     }else{
         Serial.println(F("failed."));
-    }    
+    }
+    
     analogReadResolution(12);
 
     printMenu();
@@ -87,8 +98,8 @@ void loop()
                  printRootDir();  
                  break;
             case 100:  // d for delete directory
-                 Serial.println("Deleting directory");
-                 delFiles();
+                 Serial.println("DELETE a file");
+                 delFile();
                  break;
             case 115:  // s for show samples
                  Serial.println("Show samples");
@@ -98,6 +109,7 @@ void loop()
                  Serial.println("Record samples");
                  readSamples();
                  break;
+
             default:
                  printMenu();
         }
@@ -105,21 +117,25 @@ void loop()
     }    
 
 }
-// asks user for a single number to create a filename 
-// returns an integer 0-9
-unsigned int getNum()
+
+void delFile() 
 {
-    while(true)
-    {    
-        if (Serial.available() > 0) 
-        {
-            choice = Serial.read();
-            returnKey = Serial.read();
-            return choice - 48;
-        }
-    // from Arduino docs, rec'd for stability
-    delay(1);
+    testFile = LittleFS.open(getfileName(), "r");
+    if (LittleFS.exists(dayFileName))
+    {
+        Serial.print("DELETING file  ");
+        Serial.println(dayFileName);
+        LittleFS.remove(dayFileName);
     }
+}
+
+String getfileName()
+{
+    
+    unsigned int num = getNum();
+    dayFileName = setName(num);
+    Serial.println(dayFileName);
+    return dayFileName;
 }
 
 String setName(unsigned int i)
@@ -127,14 +143,32 @@ String setName(unsigned int i)
     return dayFileName = dir + basename + String(i);
 }
 
+unsigned int getNum()
+{
+    Serial.print("Enter number of file desired (0-9):");
+    while(true)
+    {    
+        if (Serial.available() > 0) 
+        {
+            choice = Serial.read();
+            returnKey = Serial.read();
+            if ((choice > 47) && (choice < 58))
+            {
+                return choice - 48;
+            }
+            else
+            {
+                Serial.print("\n\rValue must be a number from 0-9, enter number:");
+            }
+        }
+    // from Arduino docs, rec'd for stability
+    delay(1);
+    }
+}
+
 void displaySamples()
 {
-    // 5. Display values from a file
-    Serial.print("Enter number of file desired (0-9):");
-    unsigned int num = getNum();
-    dayFileName = setName(num);
-    Serial.println(dayFileName);
-    testFile = LittleFS.open(dayFileName, "r");
+    testFile = LittleFS.open(getfileName(), "r");
     if (testFile)
     {
         Serial.print("Reading samples file, ");
@@ -144,7 +178,7 @@ void displaySamples()
     }
     else
     {
-        Serial.print("Problem reading samples file!");
+        Serial.print("Problem reading samples file! ");
         Serial.println(dayFileName);
     }
 }
@@ -152,12 +186,7 @@ void displaySamples()
 
 void readSamples()
 {
-    // 2. Read ADC
-    Serial.print("Enter number of file desired (0-9):");
-    unsigned int num = getNum();
-    dayFileName = setName(num);
-    Serial.println(dayFileName);
-    testFile = LittleFS.open(dayFileName, "w");
+    testFile = LittleFS.open(getfileName(), "w");
     if (testFile)
     {
         Serial.print(F("Reading ADC..."));
@@ -166,16 +195,13 @@ void readSamples()
             // read the value from the sensor:
             sensorValue = analogRead(sensorPin);
 
-
             // Convert ADC value into voltage
             voltage = sensorValue/4096.0 * 3.30;
-
 
             // Save value to a file
             testFile.print(sensorValue);
             testFile.print("\t");
-            testFile.print(voltage);
-            testFile.print("\r\n");
+            testFile.println(voltage);
             delay(delaySamples);
         }
 
@@ -226,24 +252,11 @@ void printDirectory(File dir, int numTabs) {
   }
 }
 
-// deletes ALL files in the directory
-void delFiles() 
-{
-    Dir dir = LittleFS.openDir("/");
-    while (dir.next()) 
-    {
-        Serial.print(dir.fileName());
-        Serial.println(" deleted");
-        LittleFS.remove(dir.fileName());
-    }
-}
-
-// prints the menu
 void printMenu()
 {
     Serial.println("Enter one of the following:");
     Serial.println("\tp for Print directory");
-    Serial.println("\td for Delete directory(DELETES ALL FILES!!)");
+    Serial.println("\td to DELETE a file");
     Serial.println("\ts for Show samples");
     Serial.println("\tr for  record samples");
     Serial.println("Followed by return.");

@@ -1,3 +1,4 @@
+// DEPRECATED DO NOT USE!! SingleFile System and Serial CONFLICT
 // SensorwFilesMenuSF
 // Provides a menu per docs below along with a filesystem and 
 // single file capability for a PC to read Pico as a PICODRIVE
