@@ -3,24 +3,7 @@
 ## Introduction
 This repository contains the coding examples used in the Engr 1B Makerspace class. 
 
-## Blink Speeds (Remove delays and measure toggle only)
-* Pi 3B (*python*) 11.5kHz
-* Pi 2B (*python*) 4.4kHz
-* Pico (*Micropython*) 33kHz
-* Pico (*Arduino*) 605kHz
-* Uno (*Arduino*) 47kHz
-* Uno (Arduino/Native C bit toggle) 1.33MHz
-
-
-## Possible Errors
-While attempting to upload code to a Pico, you get this error:
-```bash
-Error opening serial port '/dev/cu.usbmodem3101'.
-```
-Be sure to press the Boot/Sel button while plugging in a Pi Pico, or press Reset while holding the Boot/Sel button on the Adafruit Feather. This will put the Pico board in the proper state to accept a new program.
-
-
-## Pico Sketchesm, Recommended for Use:
+## Pico Sketches, Recommended for Use:
 
 ### SensorwFilesMenuSerial
 Complete program to do the following via the Serial port (USB cable):
@@ -30,9 +13,9 @@ d - delete a file in the directory
 r - record numSamples number of samples with a delaySamples in between each sample
 s - show the contents of a sample file 
 ```
-The menu system uses a single character response, so only A-Z/0-9 are available as responses. Program automatically adds File_ to the name so each file name would be *File_0*, *File_1*, *File_2* or *File_A*, *File_B* and so on.
+The menu system uses a single character response, so only A-Z/0-9 are available as responses. Program automatically adds *File_* to the name so each file name would be *File_0*, *File_1*, *File_2* or *File_A*, *File_B* and so on.
 
-Once the file contents are printed to the screen, one can use keyboard commands such as Select All (Cntrl-A/Cmd-A) and Copy (Cntrl-C/Cmd-C) to capture the data to use on the PC.
+Once the file contents are printed to the screen, one can use keyboard commands such as Select All (*Cntrl-A/Cmd-A*) and Copy (*Cntrl-C/Cmd-C*) to capture the data to use on the PC.
 
 This program serves as a template only and requires customization to be used as a sensor project. It collects data from pin A0 and converts to a Voltage, however, this is of little value unless you attach a voltage-related object to pin A0.
 
@@ -88,5 +71,21 @@ Update to SensorwFiles where a menu is used to guide using the program
 ### serialRead
 Simple program to demonstrate reading sensor data
 
-## SH110_Test
+### SH110_Test
 Uses an Adafruit GFX Examples program modified to work with the 128x64 OLED display
+
+## Possible Errors
+While attempting to upload code to a Pico, you get this error:
+```bash
+Error opening serial port '/dev/cu.usbmodem3101'.
+```
+Be sure to press the Boot/Sel button while plugging in a Pi Pico, or press Reset while holding the Boot/Sel button on the Adafruit Feather. This will put the Pico board in the proper state to accept a new program.
+
+## Blink Speeds (Remove delays and measure toggle only)
+* Pi 3B (*python*) 11.5kHz
+* Pi 2B (*python*) 4.4kHz
+* Pico (*Micropython*) 33kHz
+* Pico (*Arduino*) 605kHz
+* Uno (*Arduino*) 47kHz
+* Uno (Arduino/Native C bit toggle) 1.33MHz
+
