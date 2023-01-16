@@ -51,14 +51,22 @@
 #include "SparkFun_ARGOS_ARTIC_R2_Arduino_Library.h" // Click here to get the library: http://librarymanager/All#SparkFun_ARGOS_ARTIC_R2
 ARTIC_R2 myARTIC;
 
-// Pin assignments for the smôl stack-up described above
-int CS_Pin = 5;            // smôl CS0 = ESP32 Pin 5
-int ARTIC_PWR_EN_Pin = 27; // smôl GPIO0 = ESP32 Pin 27
+// Pin assignments for the smôl stack-up using the Pi Pico
+int CS_Pin = 17;            // smôl CS0 = Pi Pico GP17 SPIO CSn
+int ARTIC_PWR_EN_Pin = 22;  // smôl GPIO0 = Pi Pico GP22
 
 // The ARTIC RESETB, INT1, BOOT and G8 signals are accessed through a PCA9536 I2C-GPIO chip on the smôl ARTIC R2
 
 void setup()
 {
+  // I2C and SPI  assignments for the smôl stack-up using the Pi Pico
+  SPI.setRX(16);
+  // SPI.setCS(17);
+  SPI.setSCK(18);
+  SPI.setTX(19);
+  Wire.setSDA(20);            
+  Wire.setSCL(21);
+
   Serial.begin(115200);
   while (!Serial) {delay(100);}
 

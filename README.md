@@ -29,7 +29,12 @@ Code sample to use for projects, demonstrates how to use fonts and display varyi
 * Fonts available: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
 * Strint Class for Text to display: https://www.arduino.cc/reference/en/language/variables/data-types/stringobject/
 
-### SingleFile Drice
+
+## Argos Satellite Info
+* [smôl ARTIC R2 Hookup Guide](https://learn.sparkfun.com/tutorials/sml-artic-r2-hookup-guide)
+* [Github Sparkfun Artic Library](https://github.com/sparkfun/SparkFun_ARGOS_ARTIC_R2_Arduino_Library#sparkfun-argos-artic-r2-arduino-library)
+
+### SingleFile Drive
 This code will allow you to offer a single file to be transferred from the Pico as a USB file, it will show up in the PC's directory as a file
 
 * Docs: https://arduino-pico.readthedocs.io/en/latest/singlefile.html
