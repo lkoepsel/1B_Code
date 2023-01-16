@@ -5,7 +5,7 @@
 
 // A menu-based frame work for the following tasks
 // p - print directory
-// d - delete ALL files in the directory
+// d - delete a file in the directory
 // r - record numSamples number of samples with a delaySamples in between each sample
 // s - show the contents of a sample file 
 // The menu system uses a single character response, 
@@ -14,7 +14,11 @@
 
 #include "Arduino.h"
 #include "LittleFS.h"
+#include <SingleFileDrive.h>
 
+
+// delete a file in the directory
+void delFile();
 
 // asks for a specific file (0-9) to display
 // prints the file contents to the screen
@@ -24,10 +28,16 @@ void displaySamples();
 // returns an integer 0-9
 unsigned int getNum();
 
+// returns a file name to be used for processing
+String getfileName();
+
+// prints the menu
+void printMenu();
+
 // prints the directory(s) starting at the root /
 void printRootDir();
 
-// helper function to print a directory, recursive so be careful
+// helper function to print a directory, recursive so be careful when modding
 void printDirectory(File dir, int numTabs = 3);
 
 // asks for a specific file to store data
@@ -37,11 +47,23 @@ void readSamples();
 // build name for testfile
 String setName(unsigned int i);
 
-// deletes ALL files in the directory
-void delFiles();
+void SFplug(uint32_t data) {
+    // Tell my app not to write to flash, we're connected
+    dTime=50;
+}
 
-// prints the menu
-void printMenu();
+void SFunplug(uint32_t data) {
+    // I can start writing to flash again
+        dTime=2000;
+}
+
+void SFdelete(uint32_t data) {
+    // Maybe LittleFS.remove("myfile.txt")?  or do nothing
+        dTime=5000;
+}
+
+// converts a local file to a user file to be downloaded to PC
+void userFile();
 
 int sensorPin = A0;                 // input pin for ADC
 unsigned int sensorValue = 0;       // value coming from the ADC
@@ -52,6 +74,8 @@ File testFile;                      // File object for storing data
 String dir = "/";                   // base directory for files
 String basename = "File_";           // base of filename
 String dayFileName;
+char bufName[] = "File_0";
+unsigned int bufLen = 6;
 
 
 int choice = 0;                     // choice for menu and questions
@@ -67,7 +91,11 @@ void setup() {
         Serial.println(F("complete."));
     }else{
         Serial.println(F("failed."));
-    }    
+    }
+    singleFileDrive.onPlug(SFplug);
+    singleFileDrive.onUnplug(SFunplug);
+    singleFileDrive.onDelete(SFdelete);
+    
     analogReadResolution(12);
 
     printMenu();
@@ -90,8 +118,8 @@ void loop()
                  printRootDir();  
                  break;
             case 100:  // d for delete directory
-                 Serial.println("Deleting directory");
-                 delFiles();
+                 Serial.println("DELETE a file");
+                 delFile();
                  break;
             case 115:  // s for show samples
                  Serial.println("Show samples");
@@ -101,6 +129,11 @@ void loop()
                  Serial.println("Record samples");
                  readSamples();
                  break;
+            case 117:  // u for copy user file to USB PICODRIVE
+                 Serial.println("Copy file to PICODRIVE");
+                 userFile();
+                 break;
+
             default:
                  printMenu();
         }
@@ -108,21 +141,29 @@ void loop()
     }    
 
 }
-// asks user for a single number to create a filename 
-// returns an integer 0-9
-unsigned int getNum()
+
+void delFile() 
 {
-    while(true)
-    {    
-        if (Serial.available() > 0) 
-        {
-            choice = Serial.read();
-            returnKey = Serial.read();
-            return choice - 48;
-        }
-    // from Arduino docs, rec'd for stability
-    delay(1);
+    // Serial.print("Enter number of file to DELETE (0-9):");
+    // unsigned int num = getNum();
+    // dayFileName = setName(num);
+    // Serial.println(dayFileName);
+    testFile = LittleFS.open(getfileName(), "r");
+    if (LittleFS.exists(dayFileName))
+    {
+        Serial.print("DELETING file  ");
+        Serial.println(dayFileName);
+        LittleFS.remove(dayFileName);
     }
+}
+
+String getfileName()
+{
+    
+    unsigned int num = getNum();
+    dayFileName = setName(num);
+    Serial.println(dayFileName);
+    return dayFileName;
 }
 
 String setName(unsigned int i)
@@ -130,14 +171,36 @@ String setName(unsigned int i)
     return dayFileName = dir + basename + String(i);
 }
 
+unsigned int getNum()
+{
+    Serial.print("Enter number of file desired (0-9):");
+    while(true)
+    {    
+        if (Serial.available() > 0) 
+        {
+            choice = Serial.read();
+            returnKey = Serial.read();
+            if ((choice > 47) && (choice < 58))
+            {
+                return choice - 48;
+            }
+            else
+            {
+                Serial.print("\n\rValue must be a number from 0-9, enter number:");
+            }
+        }
+    // from Arduino docs, rec'd for stability
+    delay(1);
+    }
+}
+
 void displaySamples()
 {
     // 5. Display values from a file
-    Serial.print("Enter number of file desired (0-9):");
-    unsigned int num = getNum();
-    dayFileName = setName(num);
-    Serial.println(dayFileName);
-    testFile = LittleFS.open(dayFileName, "r");
+    // unsigned int num = getNum();
+    // dayFileName = setName(num);
+    // Serial.println(dayFileName);
+    testFile = LittleFS.open(getfileName(), "r");
     if (testFile)
     {
         Serial.print("Reading samples file, ");
@@ -147,7 +210,7 @@ void displaySamples()
     }
     else
     {
-        Serial.print("Problem reading samples file!");
+        Serial.print("Problem reading samples file! ");
         Serial.println(dayFileName);
     }
 }
@@ -156,11 +219,10 @@ void displaySamples()
 void readSamples()
 {
     // 2. Read ADC
-    Serial.print("Enter number of file desired (0-9):");
-    unsigned int num = getNum();
-    dayFileName = setName(num);
-    Serial.println(dayFileName);
-    testFile = LittleFS.open(dayFileName, "w");
+    // unsigned int num = getNum();
+    // dayFileName = setName(num);
+    // Serial.println(dayFileName);
+    testFile = LittleFS.open(getfileName(), "w");
     if (testFile)
     {
         Serial.print(F("Reading ADC..."));
@@ -177,8 +239,7 @@ void readSamples()
             // Save value to a file
             testFile.print(sensorValue);
             testFile.print("\t");
-            testFile.print(voltage);
-            testFile.print("\n");
+            testFile.println(voltage);
             delay(delaySamples);
         }
 
@@ -229,25 +290,48 @@ void printDirectory(File dir, int numTabs) {
   }
 }
 
-// deletes ALL files in the directory
-void delFiles() 
-{
-    Dir dir = LittleFS.openDir("/");
-    while (dir.next()) 
-    {
-        Serial.print(dir.fileName());
-        Serial.println(" deleted");
-        LittleFS.remove(dir.fileName());
-    }
-}
-
-// prints the menu
 void printMenu()
 {
     Serial.println("Enter one of the following:");
     Serial.println("\tp for Print directory");
-    Serial.println("\td for Delete directory(DELETES ALL FILES!!)");
+    Serial.println("\td to DELETE a file");
     Serial.println("\ts for Show samples");
     Serial.println("\tr for  record samples");
+    Serial.println("\tu for  USB local file");
     Serial.println("Followed by return.");
+}
+
+void SFplug(uint32_t data) {
+    // Tell my app not to write to flash, we're connected
+    Serial.println("DO NOT write to Flash");
+}
+
+void SFunplug(uint32_t data) {
+    // I can start writing to flash again
+    Serial.println("You may write to Flash");
+
+}
+
+void SFdelete(uint32_t data) {
+    // Maybe LittleFS.remove("myfile.txt")?  or do nothing
+    Serial.println("User would like to delete the file");
+}
+
+void userFile()
+{
+    // dir = "";
+    String userName = getfileName();
+    userName.toCharArray(bufName, bufLen);
+    Serial.print(userName);
+    Serial.println(" will show up in PICODRIVE as userFile.csv");
+
+    if (!singleFileDrive.begin(bufName, "userFile.csv"))
+    {
+        Serial.println("Problem with files for singleFileDrive");
+    }
+    else
+    {
+        Serial.println("Success! Wait for PICODRIVE to appear in File Manager");
+    }
+
 }

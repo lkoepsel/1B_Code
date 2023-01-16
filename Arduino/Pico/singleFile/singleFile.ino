@@ -11,22 +11,19 @@ void readSamples();
 // returns an integer 0-9
 unsigned int getNum();
 
-void myPlugSF(uint32_t data) {
-    // Tell my app not to write to flash, we're connected
-    Serial.println("DO NOT write to Flash");
-}
+// Called when the USB stick connected to a PC and the drive opened
+// Note this is from a USB IRQ so no printing to SerialUSB/etc.
+void myPlugSF(uint32_t i);
 
-void myUnplugSF(uint32_t data) {
-    // I can start writing to flash again
-    Serial.println("You may write to Flash");
+// Called when the USB is ejected or removed from a PC
+// Note this is from a USB IRQ so no printing to SerialUSB/etc.
+void myUnplugSF(uint32_t i);
 
-}
+// Called when the PC tries to delete the single file
+// Note this is from a USB IRQ so no printing to SerialUSB/etc.
+void myDeleteSF(uint32_t i);
 
-void myDeleteSF(uint32_t data) {
-    // Maybe LittleFS.remove("myfile.txt")?  or do nothing
-    Serial.println("User would like to delete the file");
-}
-
+bool okayToWrite = true;
 int sensorPin = A0;                 // input pin for ADC
 unsigned int sensorValue = 0;       // value coming from the ADC
 unsigned int numSamples = 20;       // number of samples to capture
@@ -56,7 +53,7 @@ void setup() {
         singleFileDrive.onUnplug(myUnplugSF);
         singleFileDrive.onDelete(myDeleteSF);
         // readSamples();
-        if (!singleFileDrive.begin("/File_1", "DataRecorder.csv"))
+        if (!singleFileDrive.begin("File_1", "DataRecorder.csv"))
         {
             Serial.println("Problem with files for singleFileDrive");
         }
@@ -71,57 +68,19 @@ void loop() {
     // Take some measurements, delay, etc.
 }
 
-// asks user for a single number to create a filename 
-// returns an integer 0-9
-unsigned int getNum()
-{
-    while(true)
-    {    
-        if (Serial.available() > 0) 
-        {
-            choice = Serial.read();
-            returnKey = Serial.read();
-            return choice - 48;
-        }
-    // from Arduino docs, rec'd for stability
-    delay(1);
-    }
+void myPlugSF(uint32_t i) {
+    // Tell my app not to write to flash, we're connected
+  (void) i;
+  okayToWrite = false;
 }
 
-String setName(unsigned int i)
-{
-    return dayFileName = dir + basename + String(i);
+void myUnplugSF(uint32_t i) {
+    (void) i;
+    okayToWrite = true;
 }
 
-void readSamples()
-{
-    // 2. Read ADC
-    Serial.print("Enter number of file desired (0-9):");
-    unsigned int num = getNum();
-    dayFileName = setName(num);
-    Serial.println(dayFileName);
-    testFile = LittleFS.open(dayFileName, "w");
-    if (testFile)
-    {
-        Serial.print(F("Reading ADC..."));
-        for (int i=0;i<numSamples;i++)
-        {
-            // read the value from the sensor:
-            sensorValue = analogRead(13);
-
-            // Save value to a file
-            testFile.print(sensorValue);
-            testFile.print("\t");
-            delay(delaySamples);
-        }
-
-        // Data read and stored, completed
-        Serial.print(F(testFile.name()));
-        Serial.println(F(" written."));
-        testFile.close();
-    }
-    else
-    {
-        Serial.println("Problems creating file!");
-    }
+void myDeleteSF(uint32_t i) {
+    (void) i;
+    LittleFS.remove("data.csv");
 }
+
