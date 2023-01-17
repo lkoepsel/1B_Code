@@ -28,8 +28,8 @@ String line_2_Sans_12 = "abcd 12345";
 void setup() {
     Serial.begin(115200);
     while (!Serial) {delay(100);}
-    Wire.setSDA(02);
-    Wire.setSCL(03);
+    Wire.setSDA(20);
+    Wire.setSCL(21);
 
     Serial.println("128x64 OLED FeatherWing test");
     delay(250); // wait for the OLED to power up

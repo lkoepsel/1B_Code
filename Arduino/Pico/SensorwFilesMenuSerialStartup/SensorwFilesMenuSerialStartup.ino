@@ -14,6 +14,13 @@
 #include "Arduino.h"
 #include "LittleFS.h"
 
+// Startup**********************
+// slow blink routine to indicate an error, blink n times
+void blink_error(unsigned int times);
+
+// fast blink routine to indicate an OK, blink n times
+void blink_ok(unsigned int times);
+// Startup**********************END
 // delete a file in the directory
 void delFile();
 
@@ -56,15 +63,18 @@ int sensorPin = A0;                 // input pin for ADC
 unsigned int sensorValue = 0;       // value coming from the ADC
 unsigned int numSamples = 20;       // number of samples to capture
 unsigned int delaySamples = 100;    // milliseconds between each sample
-unsigned int startupSamples = 22;       // number of samples to capture
-unsigned int startupdelaySamples = 100;    // milliseconds between each sample
+// Startup**********************
+unsigned int startupSamples = 50;       // number of samples to capture
+unsigned int startupdelaySamples = 100; // milliseconds between each sample
+unsigned int error_delay = 500;         // time between error LED blinks (slow)
+unsigned int ok_delay = 100;            // time between OK LED blinks (fast)
+// Startup**********************END
 double voltage = 0;                 // voltage calculated from ADC
+
 File testFile;                      // File object for storing data
 String dir = "/";                   // base directory for files
 String basename = "File_";           // base of filename
 String dayFileName;
-char bufName[] = "File_0";
-unsigned int bufLen = 6;
 
 int no_menu_delay = 50;
 int choice = 0;                     // choice for menu and questions
@@ -72,8 +82,8 @@ int returnKey = 0;                  // dummy variable for return key
 
 void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
+// Startup**********************
     LittleFS.begin();
-    Serial.begin(115200); // opens serial port, sets data rate to 115200 bps
     unsigned int timer = 0;
     while (!Serial) 
     {
@@ -82,8 +92,16 @@ void setup() {
         if (timer > no_menu_delay)
         {
             startup();
+            break;
         }
     }
+    // Serial.print(F("Initializing filesystem..."));
+    // if (LittleFS.begin()){
+    //     Serial.println(F("complete."));
+    // }else{
+    //     Serial.println(F("failed."));
+    // }
+// Startup**********************END
     
     analogReadResolution(12);
 
@@ -127,6 +145,29 @@ void loop()
 
 }
 
+// Startup**********************
+void blink_error(unsigned int times)
+{
+    for (int i=0;i<times;i++)
+    {
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(error_delay);
+        digitalWrite(LED_BUILTIN, LOW);
+        delay(error_delay);
+    }
+}
+
+void blink_ok(unsigned int times)
+{
+    for (int i=0;i<times;i++)
+    {
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(ok_delay);
+        digitalWrite(LED_BUILTIN, LOW);
+        delay(ok_delay);
+    }
+}
+// Startup**********************END
 
 void delFile() 
 {
@@ -226,11 +267,13 @@ void readSamples()
     }
 }
 
+// Startup**********************
 void startup()
 {
     testFile = LittleFS.open("/File_9", "w");
     if (testFile)
     {
+        blink_ok(2);
         for (int i=0;i<startupSamples;i++)
         {
             // read the value from the sensor:
@@ -251,11 +294,11 @@ void startup()
     }
     else
     {
-        digitalWrite(LED_BUILTIN, HIGH);
+        blink_error(6);
     }
 }
+// Startup**********************END
 
-// prints the directory(s) starting at the root /
 void printRootDir()
 {
     // Open root folder

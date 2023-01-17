@@ -19,6 +19,22 @@ Once the file contents are printed to the screen, one can use keyboard commands 
 
 This program serves as a template only and requires customization to be used as a sensor project. It collects data from pin A0 and converts to a Voltage, however, this is of little value unless you attach a voltage-related object to pin A0.
 
+### SensorwFilesMenuSerialStartup
+Uses SensorwFilesMenuSerial and adds the ability to startup without a USB Serial connection. (You will still need to power the Pico.)
+
+The code to add or change is marked by
+```
+// Startup*****************
+   code to add or change
+// Startup*****************END
+```
+Make the changes and confirm it works.
+1) On power up, if the Serial Monitor does NOT connect in 5 seconds, the board will attempt to automatically enter data in to *File_9*. You can change the number of samples and delay between samples as noted in the variables section.
+2) If the setup is successful and the board begins to collect samples, the LED will blink quickly **2** times
+3) If the setup is not successful and the board is unable to collect samples, the LED will blink slowly **5** times
+4) Once the board has collected the necessary number of samples, one can use the Serial Monitor and menu to examine *File_9* to view the data
+
+
 ## Pico Sketches, Partially Complete, Not suitable for Use
 
 ### OLED_Display
