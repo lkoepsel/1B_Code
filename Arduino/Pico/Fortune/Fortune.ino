@@ -23,8 +23,8 @@
 Adafruit_SH1107 display = Adafruit_SH1107(64, 128, &Wire);
 
 String line_1_noSerial = "No Serial Port";
-String line_2_noSerial = "Display on";
-String line_3_noSerial = " w logging";
+String line_2_noSerial = "Logging to";
+String line_3_noSerial ;
 
 String line_1_Mono = "Mono 9pt";
 String line_2_Mono = "abcd 567890";
@@ -39,8 +39,14 @@ void blink_error(unsigned int times);
 // fast blink routine to indicate an OK, blink n times
 void blink_ok(unsigned int times);
 
+// boolean function to confirm choice
+bool confirm();
+
 // delete a file in the directory
 void delFile();
+
+// deletes ALL files in the directory
+void delALLfiles();
 
 // asks for a specific file (0-9) to display
 // prints the file contents to the screen
@@ -50,8 +56,11 @@ void displaySamples();
 // returns an integer 0-9
 unsigned int getNum();
 
-// returns a file name to be used for processing
-String getfileName();
+// returns a alpha file name to be used for processing
+String getAfileName();
+
+// returns a numeric file name to be used for processing
+String getNfileName();
 
 // prints the menu
 void printMenu();
@@ -71,8 +80,11 @@ void readSamples();
 // reads Sensorpin and converts value to a voltage
 void startup();
 
-// build name for testfile
-String setName(unsigned int i);
+// build alpha name for testfile
+String setNameA(unsigned int i);
+
+// build numeric name for testfile
+String setNameN(unsigned int i);
 
 // converts a local file to a user file to be downloaded to PC
 void userFile();
@@ -137,8 +149,7 @@ void setup() {
             // Display if powered w/o Serial interface
             display.println(line_1_noSerial);
             display.println(line_2_noSerial);
-            display.println(line_3_noSerial);
-            display.display(); // display all of the above
+            // display.display(); // display all of the above
             startup();
 
             break;
@@ -162,6 +173,10 @@ void loop()
         // do something depending on choice:
         switch (choice) 
         {
+            case 33:  // ! to delete directory
+                 Serial.println("Delete all files!");
+                 delALLfiles();
+                 break;
             case 112:  // p for print directory
                  Serial.println("Directory");
                  printRootDir();  
@@ -211,9 +226,34 @@ void blink_ok(unsigned int times)
 }
 // Startup**********************END
 
+bool confirm()
+{
+    Serial.print(" Confirm y or n:");
+    while(true)
+    {    
+        if (Serial.available() > 0) 
+        {
+            choice = Serial.read();
+            returnKey = Serial.read();
+            if (choice == 'y')
+            {
+                Serial.println("\n\rAll files to be deleted");
+                return true;
+            }
+            else
+            {
+                Serial.println("\n\rNo files will be deleted");
+                return false;
+            }
+        }
+    // from Arduino docs, rec'd for stability
+    delay(1);
+    }
+}
+
 void delFile() 
 {
-    testFile = LittleFS.open(getfileName(), "r");
+    testFile = LittleFS.open(getNfileName(), "r");
     if (LittleFS.exists(dayFileName))
     {
         Serial.print("DELETING file  ");
@@ -222,16 +262,54 @@ void delFile()
     }
 }
 
-String getfileName()
+void delALLfiles() 
+{
+    Serial.print("Do you want to delete ALL files?");
+    if (confirm())
+    {
+        Dir dir = LittleFS.openDir("/");
+        while (dir.next()) 
+        {
+            Serial.print(dir.fileName());
+            Serial.println(" deleted");
+            LittleFS.remove(dir.fileName());
+        }
+    }
+}
+
+String getAfileName()
+{
+    char letter;
+    letter = 'A';
+    while(true)
+    {
+        dayFileName = setNameA(letter);
+        if (!LittleFS.exists(dayFileName))
+        {
+            return dayFileName;
+        }
+        else
+        {
+            (int) ++letter;
+        }
+    }    
+}
+
+String getNfileName()
 {
     
     unsigned int num = getNum();
-    dayFileName = setName(num);
+    dayFileName = setNameN(num);
     Serial.println(dayFileName);
     return dayFileName;
 }
 
-String setName(unsigned int i)
+String setNameA(char a)
+{
+    return dayFileName = dir + basename + a;
+}
+
+String setNameN(unsigned int i)
 {
     return dayFileName = dir + basename + String(i);
 }
@@ -261,7 +339,7 @@ unsigned int getNum()
 
 void displaySamples()
 {
-    testFile = LittleFS.open(getfileName(), "r");
+    testFile = LittleFS.open(getNfileName(), "r");
     if (testFile)
     {
         Serial.print("Reading samples file, ");
@@ -279,7 +357,7 @@ void displaySamples()
 
 void readSamples()
 {
-    testFile = LittleFS.open(getfileName(), "w");
+    testFile = LittleFS.open(getNfileName(), "w");
     if (testFile)
     {
         Serial.print(F("Reading ADC..."));
@@ -312,7 +390,10 @@ void readSamples()
 // Startup**********************
 void startup()
 {
-    testFile = LittleFS.open("/File_9", "w");
+    String startfilename = getAfileName();
+    testFile = LittleFS.open(startfilename, "w");
+    display.println(startfilename);
+    display.display();
     if (testFile)
     {
         blink_ok(2);
@@ -380,8 +461,9 @@ void printMenu()
 {
     Serial.println("Enter one of the following:");
     Serial.println("\tp for Print directory");
-    Serial.println("\td to DELETE a file");
+    Serial.println("\td to Delete a file");
     Serial.println("\ts for Show samples");
-    Serial.println("\tr for  record samples");
+    Serial.println("\tr for  Record samples");
+    Serial.println("\t! to Delete ALL files");
     Serial.println("Followed by return.");
 }
