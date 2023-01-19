@@ -30,10 +30,6 @@ Adafruit_MLX90614 mlx = Adafruit_MLX90614();
 
 Adafruit_SH1107 display = Adafruit_SH1107(64, 128, &Wire);
 
-String line_1_noSerial = "No Serial Port";
-String line_2_noSerial = "Logging to";
-String line_3_noSerial ;
-
 // slow blink routine to indicate an error, blink n times
 void blink_error(unsigned int times);
 
@@ -90,6 +86,15 @@ String setNameN(unsigned int i);
 // converts a local file to a user file to be downloaded to PC
 void userFile();
 
+//*********************** FORTUNE ***********************
+// in Office mode, use PC serial monitor to display temperatures
+void printTemp();
+
+// in Field mode, use display to show temperatures
+void dispTemp();
+//*********************** FORTUNE *********************** END
+
+
 unsigned int numSamples = 20;       // number of samples to capture
 unsigned int delaySamples = 3000;    // milliseconds between each sample
 
@@ -122,19 +127,21 @@ bool on_state = false;
 // but without double counting during the same trip
 float time_passed;
 float rpm_val;
+
+String line_1_noSerial = "No Serial Port";
+String line_2_noSerial = "Logging to";
+String line_3_noSerial ;
+
 //*********************** FORTUNE *********************** END
 
 void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
 //    Wire.setSDA(20);
 //    Wire.setSCL(21);
-
-//    Wire1.setSDA(4);
-//    Wire1.setSCL(5);
     
     LittleFS.begin();
 //*********************** FORTUNE ***********************
-    //run sensor library
+    // start IR temp sensor 
     mlx.begin();
 //*********************** FORTUNE *********************** END
     unsigned int timer = 0;
@@ -225,7 +232,6 @@ void loop()
 
 }
 
-// Startup**********************
 void blink_error(unsigned int times)
 {
     for (int i=0;i<times;i++)
@@ -247,7 +253,6 @@ void blink_ok(unsigned int times)
         delay(ok_delay);
     }
 }
-// Startup**********************END
 
 bool confirm()
 {
@@ -377,6 +382,89 @@ void displaySamples()
     }
 }
 
+void initSensors()
+{
+    hall_count = 0.0;
+    on_state = false;
+    temp_start = millis();
+    hall_start = micros();
+}
+
+void readSensorsPrint()
+{
+    while(true)
+    {
+        if (digitalRead(hall_pin)==0)
+        {                  
+            if (!on_state)
+            {
+              on_state = true;
+              hall_count+=1;                    
+            }
+        } 
+        else
+        {
+            on_state = false;
+        }
+        printTemp();
+        if (hall_count>=hall_thresh)
+        {
+            break;
+        }
+    }
+    hall_end = micros();
+    time_passed = ((hall_end-hall_start)/1000000.0);  // converts microseconds to seconds 
+    rpm_val = ((hall_count-1) / time_passed) * 60.0;  //converts seconds to minutes                                   
+}
+
+void readSensorsDisplay()
+{
+    while(true)
+    {
+        if (digitalRead(hall_pin)==0)
+        {                  
+            if (!on_state)
+            {
+              on_state = true;
+              hall_count+=1;                    
+            }
+        } 
+        else
+        {
+            on_state = false;
+        }
+        dispTemp();
+        if (hall_count>=hall_thresh)
+        {
+            break;
+        }
+    }
+    hall_end = micros();
+    time_passed = ((hall_end-hall_start)/1000000.0);  // converts microseconds to seconds 
+    rpm_val = ((hall_count-1) / time_passed) * 60.0;  //converts seconds to minutes                                   
+}
+
+void   saveSensors()
+{     
+    testFile.print(time_passed);
+    testFile.print("\t");
+    testFile.print("\t");           
+    testFile.print(rpm_val);
+    testFile.print("\t");
+    testFile.print("\t");
+    testFile.print(mlx.readObjectTempC());
+    testFile.print("\t");
+    testFile.print("\t");
+    testFile.print(mlx.readObjectTempF());
+    testFile.print("\r\n");  
+}
+
+void closeFilePrint()
+{
+    Serial.print((testFile.name()));
+    Serial.println((" written."));
+    testFile.close();
+}
 
 void readSamples()
 {
@@ -387,50 +475,51 @@ void readSamples()
         for (int i=0;i<numSamples;i++)
         {
 //*********************** FORTUNE ***********************
-            // read the value from the sensor:
-            //sensorValue = analogRead(sensorPin);
             //Hall Effect Sensor           
-              hall_count = 0.0;
-              on_state = false;
-              temp_start = millis();
-              hall_start = micros();
-              while(true)
-              {
-              if (digitalRead(hall_pin)==0)
-                {                  
-                  if (!on_state)
-                  {
-                    on_state = true;
-                    hall_count+=1;                    
-                  }
-                } 
-                else
-                {
-                  on_state = false;
-                }
-                printTemp();
-                if (hall_count>=hall_thresh)
-                {
-                  break;
-                }
-              }
-              hall_end = micros();
-              time_passed = ((hall_end-hall_start)/1000000.0);  // converts microseconds to seconds 
-              rpm_val = ((hall_count-1) / time_passed) * 60.0;  //converts seconds to minutes                                   
+            // hall_count = 0.0;
+            // on_state = false;
+            // temp_start = millis();
+            // hall_start = micros();
+            initSensors();
+            readSensorsPrint();
+              // while(true)
+              // {
+              // if (digitalRead(hall_pin)==0)
+              //   {                  
+              //     if (!on_state)
+              //     {
+              //       on_state = true;
+              //       hall_count+=1;                    
+              //     }
+              //   } 
+              //   else
+              //   {
+              //     on_state = false;
+              //   }
+              //   printTemp();
+              //   if (hall_count>=hall_thresh)
+              //   {
+              //     break;
+              //   }
+              // }
+              // hall_end = micros();
+              // time_passed = ((hall_end-hall_start)/1000000.0);  // converts microseconds to seconds 
+              // rpm_val = ((hall_count-1) / time_passed) * 60.0;  //converts seconds to minutes                                   
                                                        
            
-            // Save value to a file         
-            testFile.print(time_passed);
-            testFile.print("\t");
-            testFile.print("\t");           
-            testFile.print(rpm_val);
-            testFile.print("\t");
-            testFile.print("\t");
-            testFile.print(mlx.readObjectTempC());
-            testFile.print("\t");
-            testFile.print("\t");
-            testFile.print(mlx.readObjectTempF());
-            testFile.print("\r\n");  
+            // Save value to a file
+            saveSensors();         
+            // testFile.print(time_passed);
+            // testFile.print("\t");
+            // testFile.print("\t");           
+            // testFile.print(rpm_val);
+            // testFile.print("\t");
+            // testFile.print("\t");
+            // testFile.print(mlx.readObjectTempC());
+            // testFile.print("\t");
+            // testFile.print("\t");
+            // testFile.print(mlx.readObjectTempF());
+            // testFile.print("\r\n");  
             //delay(delaySamples);
             for (int sampleWait = 0; sampleWait < delaySamples/1000; sampleWait++)
             {
@@ -439,11 +528,11 @@ void readSamples()
              }
 //*********************** FORTUNE *********************** END
         }
-
+        closeFilePrint();
         // Data read and stored, completed
-        Serial.print(F(testFile.name()));
-        Serial.println(F(" written."));
-        testFile.close();
+        // Serial.print((testFile.name()));
+        // Serial.println((" written."));
+        // testFile.close();
     }
     else
     {
@@ -451,7 +540,6 @@ void readSamples()
     }
 }
 
-// Startup**********************
 void startup()
 {
     String startfilename = getAfileName();
@@ -465,51 +553,56 @@ void startup()
         {
 //*********************** FORTUNE ***********************
             //Hall Effect Sensor           
-              hall_count = 0.0;
-              on_state = false;
-              temp_start = millis();
-              hall_start = micros();
-              while(true)
-              {
-              if (digitalRead(hall_pin)==0)
-                {                  
-                  if (!on_state)
-                  {
-                    on_state = true;
-                    hall_count+=1;                    
-                  }
-                } 
-                else
-                {
-                  on_state = false;
-                }
-                dispTemp();
-                if (hall_count>=hall_thresh)
-                {
-                  break;
-                }
-              }
-              hall_end = micros();
-              time_passed = ((hall_end-hall_start)/1000000.0);  // converts microseconds to seconds 
-              rpm_val = ((hall_count-1) / time_passed) * 60.0;  //converts seconds to minutes                                   
+              // hall_count = 0.0;
+              // on_state = false;
+              // temp_start = millis();
+              // hall_start = micros();
+            initSensors();
+            readSensorsDisp();
+              // while(true)
+              // {
+              // if (digitalRead(hall_pin)==0)
+              //   {                  
+              //     if (!on_state)
+              //     {
+              //       on_state = true;
+              //       hall_count+=1;                    
+              //     }
+              //   } 
+              //   else
+              //   {
+              //     on_state = false;
+              //   }
+              //   dispTemp();
+              //   if (hall_count>=hall_thresh)
+              //   {
+              //     break;
+              //   }
+              // }
+              // hall_end = micros();
+              // time_passed = ((hall_end-hall_start)/1000000.0);  // converts microseconds to seconds 
+              // rpm_val = ((hall_count-1) / time_passed) * 60.0;  //converts seconds to minutes                                   
                                                        
            
-            // Save value to a file         
-            testFile.print(time_passed);
-            testFile.print("\t");
-            testFile.print("\t");           
-            testFile.print(rpm_val);
-            testFile.print("\t");
-            testFile.print("\t");
-            testFile.print(mlx.readObjectTempC());
-            testFile.print("\t");
-            testFile.print("\t");
-            testFile.print(mlx.readObjectTempF());
-            testFile.print("\r\n");  
-            delay(delaySamples);
-            for (int sampleWait = 0; sampleWait < 3; sampleWait++)
-            {
-            String text3 = (String) mlx.readObjectTempF();
+            // Save value to a file
+            saveSensors();         
+            // testFile.print(time_passed);
+            // testFile.print("\t");
+            // testFile.print("\t");           
+            // testFile.print(rpm_val);
+            // testFile.print("\t");
+            // testFile.print("\t");
+            // testFile.print(mlx.readObjectTempC());
+            // testFile.print("\t");
+            // testFile.print("\t");
+            // testFile.print(mlx.readObjectTempF());
+            // testFile.print("\r\n");  
+
+            // TODO: DETERMINE IF THIS IS NEEDED
+            // delay(delaySamples);
+            // for (int sampleWait = 0; sampleWait < 3; sampleWait++)
+            // {
+            // String text3 = (String) mlx.readObjectTempF();
 //          display.println(text3);
 //          display.display();
   
@@ -527,7 +620,6 @@ void startup()
         blink_error(6);
     }
 }
-// Startup**********************END
 
 void printRootDir()
 {
