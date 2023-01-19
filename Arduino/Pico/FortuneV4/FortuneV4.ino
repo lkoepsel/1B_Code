@@ -19,9 +19,9 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
 #include <Fonts/FreeSans9pt7b.h>
+//*********************** FORTUNE ***********************
 #include <Fonts/FreeSans18pt7b.h>
 
-//*********************** FORTUNE ***********************
 //temp sensor
 #include <Wire.h>
 #include <Adafruit_MLX90614.h>
@@ -45,13 +45,13 @@ void delFile();
 // deletes ALL files in the directory
 void delALLfiles();
 
-// asks for a specific file (1-7) to display
+// asks for a specific file (0-9) to display
 // prints the file contents to the screen
 void displaySamples();
 
-// asks user for a single number to create a filename 
-// returns an integer 1-7
-unsigned int getNum();
+// asks user for a number or letter to create a filename 
+// returns a String filename
+String getName();
 
 // returns a alpha file name to be used for processing
 String getAfileName();
@@ -79,9 +79,6 @@ void startup();
 
 // build alpha name for testfile
 String setNameA(unsigned int i);
-
-// build numeric name for testfile
-String setNameN(unsigned int i);
 
 // converts a local file to a user file to be downloaded to PC
 void userFile();
@@ -136,8 +133,8 @@ String line_3_noSerial ;
 
 void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
-//    Wire.setSDA(20);
-//    Wire.setSCL(21);
+    // Wire.setSDA(20);
+    // Wire.setSCL(21);
     
     LittleFS.begin();
 //*********************** FORTUNE ***********************
@@ -183,11 +180,8 @@ void setup() {
             break;
         }
     }
-
     Serial.println("Fortune Cookie Machine Testing Program");
-    
     analogReadResolution(12);
-
     printMenu();
 }
 
@@ -308,7 +302,7 @@ void delALLfiles()
 String getAfileName()
 {
     char letter;
-    letter = 'A';
+    letter = 'a';
     while(true)
     {
         dayFileName = setNameA(letter);
@@ -326,8 +320,7 @@ String getAfileName()
 String getNfileName()
 {
     
-    unsigned int num = getNum();
-    dayFileName = setNameN(num);
+    dayFileName = getName();
     Serial.println(dayFileName);
     return dayFileName;
 }
@@ -337,14 +330,9 @@ String setNameA(char a)
     return dayFileName = dir + basename + a;
 }
 
-String setNameN(unsigned int i)
+String getName()
 {
-    return dayFileName = dir + basename + String(i);
-}
-
-unsigned int getNum()
-{
-    Serial.print("Enter number of file desired (1-7):");
+    Serial.print("Enter number of file desired (0-9):");
     while(true)
     {    
         if (Serial.available() > 0) 
@@ -353,11 +341,16 @@ unsigned int getNum()
             returnKey = Serial.read();
             if ((choice > 47) && (choice < 58))
             {
-                return choice - 48;
+                return dayFileName = dir + basename + String(choice - 48);
+                // return choice - 48;
+            }
+            else if ((choice >= 97) && (choice <= 122))
+            {
+                return dayFileName = dir + basename + (char)choice;
             }
             else
             {
-                Serial.print("\n\rValue must be a number from 1-7, enter number:");
+                Serial.print("\n\rValue must be a number from 0-9 or letter a-z, enter number:");
             }
         }
     // from Arduino docs, rec'd for stability
@@ -367,7 +360,7 @@ unsigned int getNum()
 
 void displaySamples()
 {
-    testFile = LittleFS.open(getNfileName(), "r");
+    testFile = LittleFS.open(getName(), "r");
     if (testFile)
     {
         Serial.print("Reading samples file, ");
@@ -475,52 +468,9 @@ void readSamples()
         for (int i=0;i<numSamples;i++)
         {
 //*********************** FORTUNE ***********************
-            //Hall Effect Sensor           
-            // hall_count = 0.0;
-            // on_state = false;
-            // temp_start = millis();
-            // hall_start = micros();
             initSensors();
             readSensorsPrint();
-              // while(true)
-              // {
-              // if (digitalRead(hall_pin)==0)
-              //   {                  
-              //     if (!on_state)
-              //     {
-              //       on_state = true;
-              //       hall_count+=1;                    
-              //     }
-              //   } 
-              //   else
-              //   {
-              //     on_state = false;
-              //   }
-              //   printTemp();
-              //   if (hall_count>=hall_thresh)
-              //   {
-              //     break;
-              //   }
-              // }
-              // hall_end = micros();
-              // time_passed = ((hall_end-hall_start)/1000000.0);  // converts microseconds to seconds 
-              // rpm_val = ((hall_count-1) / time_passed) * 60.0;  //converts seconds to minutes                                   
-                                                       
-           
-            // Save value to a file
             saveSensors();         
-            // testFile.print(time_passed);
-            // testFile.print("\t");
-            // testFile.print("\t");           
-            // testFile.print(rpm_val);
-            // testFile.print("\t");
-            // testFile.print("\t");
-            // testFile.print(mlx.readObjectTempC());
-            // testFile.print("\t");
-            // testFile.print("\t");
-            // testFile.print(mlx.readObjectTempF());
-            // testFile.print("\r\n");  
-            //delay(delaySamples);
             for (int sampleWait = 0; sampleWait < delaySamples/1000; sampleWait++)
             {
 //              Serial.println(mlx.readObjectTempF());
@@ -529,10 +479,6 @@ void readSamples()
 //*********************** FORTUNE *********************** END
         }
         closeFilePrint();
-        // Data read and stored, completed
-        // Serial.print((testFile.name()));
-        // Serial.println((" written."));
-        // testFile.close();
     }
     else
     {
@@ -552,51 +498,9 @@ void startup()
         for (int i=0;i<startupSamples;i++)
         {
 //*********************** FORTUNE ***********************
-            //Hall Effect Sensor           
-              // hall_count = 0.0;
-              // on_state = false;
-              // temp_start = millis();
-              // hall_start = micros();
             initSensors();
             readSensorsDisplay();
-              // while(true)
-              // {
-              // if (digitalRead(hall_pin)==0)
-              //   {                  
-              //     if (!on_state)
-              //     {
-              //       on_state = true;
-              //       hall_count+=1;                    
-              //     }
-              //   } 
-              //   else
-              //   {
-              //     on_state = false;
-              //   }
-              //   dispTemp();
-              //   if (hall_count>=hall_thresh)
-              //   {
-              //     break;
-              //   }
-              // }
-              // hall_end = micros();
-              // time_passed = ((hall_end-hall_start)/1000000.0);  // converts microseconds to seconds 
-              // rpm_val = ((hall_count-1) / time_passed) * 60.0;  //converts seconds to minutes                                   
-                                                       
-           
-            // Save value to a file
             saveSensors();         
-            // testFile.print(time_passed);
-            // testFile.print("\t");
-            // testFile.print("\t");           
-            // testFile.print(rpm_val);
-            // testFile.print("\t");
-            // testFile.print("\t");
-            // testFile.print(mlx.readObjectTempC());
-            // testFile.print("\t");
-            // testFile.print("\t");
-            // testFile.print(mlx.readObjectTempF());
-            // testFile.print("\r\n");  
 
             // TODO: DETERMINE IF THIS IS NEEDED
             // delay(delaySamples);
@@ -660,9 +564,10 @@ void printMenu()
 {
     Serial.println("Enter one of the following:");
     Serial.println("\tp for Print directory");
-    Serial.println("\tr for  record samples");
+    Serial.println("\td to Delete a file");
     Serial.println("\ts for Show samples");
-    Serial.println("\td to DELETE a file");
+    Serial.println("\tr for  Record samples");
+    Serial.println("\t! to Delete ALL files");
     Serial.println("Followed by return.");
 }
 
