@@ -52,9 +52,9 @@ void delALLfiles();
 // prints the file contents to the screen
 void displaySamples();
 
-// asks user for a single number to create a filename 
-// returns an integer 0-9
-unsigned int getNum();
+// asks user for a number or letter to create a filename 
+// returns a String filename
+String getName();
 
 // returns a alpha file name to be used for processing
 String getAfileName();
@@ -83,9 +83,6 @@ void startup();
 // build alpha name for testfile
 String setNameA(unsigned int i);
 
-// build numeric name for testfile
-String setNameN(unsigned int i);
-
 // converts a local file to a user file to be downloaded to PC
 void userFile();
 
@@ -112,8 +109,8 @@ int returnKey = 0;                  // dummy variable for return key
 
 void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
-    Wire.setSDA(20);
-    Wire.setSCL(21);
+    // Wire.setSDA(20);
+    // Wire.setSCL(21);
 
     LittleFS.begin();
     unsigned int timer = 0;
@@ -155,7 +152,7 @@ void setup() {
             break;
         }
     }
-    
+    Serial.println("Fortune Cookie Machine Testing Program");
     analogReadResolution(12);
 
     printMenu();
@@ -280,7 +277,7 @@ void delALLfiles()
 String getAfileName()
 {
     char letter;
-    letter = 'A';
+    letter = 'a';
     while(true)
     {
         dayFileName = setNameA(letter);
@@ -298,8 +295,7 @@ String getAfileName()
 String getNfileName()
 {
     
-    unsigned int num = getNum();
-    dayFileName = setNameN(num);
+    dayFileName = getName();
     Serial.println(dayFileName);
     return dayFileName;
 }
@@ -309,12 +305,7 @@ String setNameA(char a)
     return dayFileName = dir + basename + a;
 }
 
-String setNameN(unsigned int i)
-{
-    return dayFileName = dir + basename + String(i);
-}
-
-unsigned int getNum()
+String getName()
 {
     Serial.print("Enter number of file desired (0-9):");
     while(true)
@@ -325,11 +316,16 @@ unsigned int getNum()
             returnKey = Serial.read();
             if ((choice > 47) && (choice < 58))
             {
-                return choice - 48;
+                return dayFileName = dir + basename + String(choice - 48);
+                // return choice - 48;
+            }
+            else if ((choice >= 97) && (choice <= 122))
+            {
+                return dayFileName = dir + basename + (char)choice;
             }
             else
             {
-                Serial.print("\n\rValue must be a number from 0-9, enter number:");
+                Serial.print("\n\rValue must be a number from 0-9 or letter a-z, enter number:");
             }
         }
     // from Arduino docs, rec'd for stability
@@ -339,7 +335,7 @@ unsigned int getNum()
 
 void displaySamples()
 {
-    testFile = LittleFS.open(getNfileName(), "r");
+    testFile = LittleFS.open(getName(), "r");
     if (testFile)
     {
         Serial.print("Reading samples file, ");
