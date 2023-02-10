@@ -37,8 +37,8 @@ Adafruit_SH1107 display = Adafruit_SH1107(64, 128, &Wire);
 void setup() {
     Serial.begin(115200);
     while (!Serial) {delay(100);}
-    Wire.setSDA(20);
-    Wire.setSCL(21);
+    // Wire.setSDA(20);
+    // Wire.setSCL(21);
 
     Serial.println("128x64 OLED FeatherWing test");
     delay(250); // wait for the OLED to power up

@@ -136,8 +136,8 @@ String line_3_noSerial ;
 
 void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
-     Wire.setSDA(4);
-     Wire.setSCL(5);
+     // Wire.setSDA(4);
+     // Wire.setSCL(5);
 
     LittleFS.begin();
 //*********************** FORTUNE ***********************
