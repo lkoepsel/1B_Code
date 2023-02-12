@@ -26,12 +26,17 @@
 void setup() {
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(115200);
+  while (!Serial) {delay(100);}
+  Serial.println("\nBlink Program");
 }
 
 // the loop function runs over and over again forever
 void loop() {
+  Serial.println("HIGH");
   digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
   delay(500);                       // wait for a second
+  Serial.println("LOW");
   digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
   delay(500);                       // wait for a second
 }

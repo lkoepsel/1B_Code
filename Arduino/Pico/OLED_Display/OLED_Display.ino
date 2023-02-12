@@ -1,6 +1,6 @@
 // Display program for using Adafruit FeatherWing OLED 128x64
 // Setup to display 3 lines of 12-14 characters per line
-// If using Pico, use GP20 for SDA and GP21 for SCL
+// If using Pico, use GP4 for SDA and GP5 (pins 6/7) for SCL
 // Or change appropriately using the Wire commands below
 // Uses Arduino String class for text 
 
@@ -28,10 +28,8 @@ String line_2_Sans_12 = "abcd 12345";
 void setup() {
     Serial.begin(115200);
     while (!Serial) {delay(100);}
-    Wire.setSDA(20);
-    Wire.setSCL(21);
-
     Serial.println("128x64 OLED FeatherWing test");
+
     delay(250); // wait for the OLED to power up
     // display.begin(0x3C, true); // Address 0x3C default
     if (!display.begin(0x3C, true))
