@@ -23,7 +23,6 @@
 #include <Fonts/FreeSans18pt7b.h>
 
 //temp sensor
-#include <Wire.h>
 #include <Adafruit_MLX90614.h>
 Adafruit_MLX90614 mlx = Adafruit_MLX90614();
 //*********************** FORTUNE *********************** END
