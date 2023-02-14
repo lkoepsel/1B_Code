@@ -76,15 +76,9 @@ void setup() {
 
     // init Adafruit I2C interface
     init_Wire(SDA_00, SCL_00, Wire);
-    // Wire.setSDA(SDA_00);
-    // Wire.setSCL(SCL_00);
-    // Wire.begin();
 
     // init Sparkfun 1st I2C interface
     init_Wire(SDA_10, SCL_10, Wire1);
-    // Wire1.setSDA(SDA_10);
-    // Wire1.setSCL(SCL_10);
-    // Wire1.begin();
 
     if (!OL_display.begin(address_00, true))
     {

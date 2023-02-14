@@ -5,6 +5,7 @@
 
 byte error, address;
 unsigned int nDevices;
+unsigned int wireN = 0;
 
 // Pi Pico SDA/SCL Pins
 const unsigned int SDA_00 = 0;
@@ -70,7 +71,9 @@ void scan_Wire(unsigned int SDA, unsigned int SCL, TwoWire &Wire)
     Wire.setSCL(SCL);
     Wire.begin();
 
-    Serial.print("SDA: ");
+    Serial.print("Wire");
+    Serial.print(wireN % 2);
+    Serial.print(" SDA: ");
     Serial.print(SDA);
     Serial.print(" SCL: ");
     Serial.println(SCL);
@@ -111,6 +114,7 @@ void scan_Wire(unsigned int SDA, unsigned int SCL, TwoWire &Wire)
       Serial.println("Wire Scan Complete\n");
     }
     Wire.end();
+    wireN++;
     // End of Wire Scanning Section
 
 }
